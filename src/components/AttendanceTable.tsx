@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import FieldTripModal from "./FieldTripModel";
 import EmployeeCalendarModal from "./EmployeeCalendarModal";
 import ModifyAttendanceModal from "./ModifyAttendanceModal";
-import { api } from "../utils/api"; // Import the api client
+import { api } from "../utils/api";
 
-import type { ApiResponse, User, FieldTrip, Attendance } from "../types";
+import type { ApiResponse, User, Attendance } from "../types";
 
 interface AttendanceTableProps {
   data: ApiResponse | null;
@@ -15,7 +15,7 @@ interface AttendanceTableProps {
   onViewDetails: (user: User) => void;
   selectedDate?: string;
   dateAttendances?: (Attendance & { username: string })[];
-  loadData: () => void; // For refreshing data
+  loadData: () => void;
 }
 
 export default function AttendanceTable({
@@ -83,36 +83,28 @@ export default function AttendanceTable({
     });
   };
 
+  // Loading / Error Wrappers styled as Neo Cards
   if (loading) {
     return (
-      <div className="users-table">
-        <div className="table-header">
-          <h2>Employee Attendance Records</h2>
-        </div>
-        <div className="loading">Loading…</div>
+      <div className="neo-card p-8 text-center">
+        <div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full mx-auto mb-4"></div>
+        <div className="font-bold text-lg">Loading Records...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="users-table">
-        <div className="table-header">
-          <h2>Employee Attendance Records</h2>
-        </div>
-        <div className="error">{error}</div>
+      <div className="neo-card p-8 border-red-500 text-center">
+        <div className="text-red-600 font-bold mb-2">Error</div>
+        <div>{error}</div>
       </div>
     );
   }
 
   if (!data || !data.data) {
     return (
-      <div className="users-table">
-        <div className="table-header">
-          <h2>Employee Attendance Records</h2>
-        </div>
-        <div className="loading">No data available</div>
-      </div>
+      <div className="neo-card p-8 text-center font-bold">No data available</div>
     );
   }
 
@@ -122,9 +114,9 @@ export default function AttendanceTable({
     <>
       {/* Daily Attendance Section */}
       {selectedDate && dateAttendances && dateAttendances.length > 0 && (
-        <div className="users-table mb-6">
-          <div className="table-header">
-            <h2>
+        <div className="neo-card mb-8">
+          <div className="p-4 border-b-2 border-black flex justify-between items-center bg-gray-50 rounded-t-md">
+            <h2 className="font-bold uppercase">
               Attendance for{" "}
               {new Date(selectedDate).toLocaleDateString("en-US", {
                 weekday: "long",
@@ -133,7 +125,7 @@ export default function AttendanceTable({
                 day: "numeric",
               })}
             </h2>
-            <span className="font-bold">
+            <span className="badge badge-green">
               Total Present: {dateAttendances.length}
             </span>
           </div>
@@ -158,36 +150,34 @@ export default function AttendanceTable({
                 {dateAttendances.map((att, idx) => (
                   <div
                     key={idx}
-                    className="card"
+                    className="bg-white border-2 border-black p-4 shadow-[2px_2px_0px_rgba(0,0,0,0.25)]"
                     style={{
                       minWidth: "250px",
                       width: "250px",
                       flexShrink: 0,
                     }}
                   >
-                    <div className="font-bold mb-3 pb-2 border-b-2 border-black">
+                    <div className="font-bold mb-3 pb-2 border-b-2 border-black text-lg">
                       {att.username}
                     </div>
-                    <div className="space-y-3">
-                      <div>
-                        <div className="font-bold text-sm mb-1">Check-in:</div>
-                        <div className="text-green-600 font-semibold">
+                    <div className="space-y-3 font-mono text-sm">
+                      <div className="flex justify-between">
+                        <span className="font-bold">IN:</span>
+                        <span className="text-green-700 bg-green-50 px-1 border border-green-200">
                           {formatTime(att.checkinTime)}
-                        </div>
+                        </span>
                       </div>
-                      <div>
-                        <div className="font-bold text-sm mb-1">
-                          Check-out:
-                        </div>
-                        <div
+                      <div className="flex justify-between">
+                        <span className="font-bold">OUT:</span>
+                        <span
                           className={
                             att.checkoutTime
-                              ? "text-red-600 font-semibold"
-                              : "text-gray-500 italic"
+                              ? "text-red-700 bg-red-50 px-1 border border-red-200"
+                              : "text-gray-400"
                           }
                         >
                           {formatTime(att.checkoutTime)}
-                        </div>
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -200,18 +190,12 @@ export default function AttendanceTable({
 
       {/* Absent Employees Section */}
       {selectedDate && absentEmployees.length > 0 && (
-        <div className="users-table mb-6">
-          <div className="table-header">
-            <h2>
-              Absent for{" "}
-              {new Date(selectedDate).toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
+        <div className="neo-card mb-8 border-red-900">
+          <div className="p-4 border-b-2 border-black flex justify-between items-center bg-red-50 rounded-t-md">
+            <h2 className="font-bold uppercase text-red-900">
+              Absent List
             </h2>
-            <span className="font-bold">
+            <span className="badge badge-red">
               Total Absent: {absentEmployees.length}
             </span>
           </div>
@@ -236,39 +220,29 @@ export default function AttendanceTable({
                 {absentEmployees.map((user, idx) => (
                   <div
                     key={idx}
-                    className="card bg-red-50"
+                    className="bg-red-50 border-2 border-red-900 p-4"
                     style={{
                       minWidth: "250px",
                       width: "250px",
                       flexShrink: 0,
                     }}
                   >
-                    <div className="font-bold mb-3 pb-2 border-b-2 border-red-500">
+                    <div className="font-bold mb-3 pb-2 border-b-2 border-red-900 text-lg">
                       {user.username}
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 font-mono text-xs">
                       <div>
-                        <div className="font-bold text-sm mb-1">
-                          Employee Number:
-                        </div>
-                        <div className="text-gray-700">
-                          {user.employeeNumber}
-                        </div>
+                        <span className="font-bold">ID:</span> {user.employeeNumber}
                       </div>
-                      <div>
-                        <div className="font-bold text-sm mb-1">
-                          Project ID:
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {user.projects.map((p, pIndex) => (
-                            <span
-                              key={`${p.projectCode}-${pIndex}`}
-                              className="project-tag text-xs"
-                            >
-                              {p.projectCode}
-                            </span>
-                          ))}
-                        </div>
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {user.projects.map((p, pIndex) => (
+                          <span
+                            key={`${p.projectCode}-${pIndex}`}
+                            className="bg-white border border-black px-1"
+                          >
+                            {p.projectCode}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -283,164 +257,124 @@ export default function AttendanceTable({
         absentEmployees.length === 0 &&
         dateAttendances &&
         dateAttendances.length > 0 && (
-          <div className="users-table mb-6">
-            <div className="table-header">
-              <h2 className="text-green-600">
-                Absent Employees on{" "}
-                {new Date(selectedDate).toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </h2>
-            </div>
-            <div className="p-6">
-              <div className="text-center text-green-600 font-semibold">
-                🎉 No employees were absent on this day!
-              </div>
-            </div>
+          <div className="neo-card mb-8 bg-green-50 border-green-800 p-6 text-center">
+            <h2 className="text-green-800 font-bold uppercase text-xl">
+              🎉 Full Attendance Recorded!
+            </h2>
           </div>
         )}
 
       {/* Main Attendance Table */}
-      <div className="users-table">
-        <div className="table-header">
-          <h2>Employee Attendance Records</h2>
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="search-container">
+      <div className="neo-card">
+        <div className="p-4 border-b-2 border-black flex flex-col md:flex-row justify-between items-center gap-4">
+          <h2 className="text-xl font-bold uppercase">Employee Directory</h2>
+
+          <div className="flex items-center gap-4 flex-wrap w-full md:w-auto">
+            <div className="flex-grow md:flex-grow-0">
               <input
                 type="text"
-                placeholder="Search...."
+                placeholder="Search employee..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="date-search-input"
-                style={{ minWidth: "250px" }}
+                className="neo-input"
               />
             </div>
-            <div className="header-info">
-              <span>
-                Month: {data.month}/{data.year}
-              </span>
-              <span>Total Users: {data.totalUsers}</span>
+            <div className="text-sm font-mono border-2 border-black p-2 bg-gray-100">
+              Count: {data.totalUsers}
             </div>
           </div>
         </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Employee Number</th>
-              <th>Employee Username</th>
-              <th>Projects</th>
-              <th>Monthly Stats</th>
-              <th>Field Trip Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
+        <div className="neo-table-container border-0 rounded-none">
+          <table className="neo-table">
+            <thead>
+              <tr>
+                <th>Emp. ID</th>
+                <th>Username</th>
+                <th>Projects</th>
+                <th>Monthly Stats</th>
+                <th>Field Trip</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
 
-          <tbody>
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user: User, index: number) => (
-                <tr key={user.employeeNumber || index} className="user-row">
-                  <td>{user.employeeNumber}</td>
-                  <td>{user.username}</td>
-                  <td>
-                    <div className="project-list">
-                      {user.projects.map((p, pIndex) => (
-                        <span
-                          key={`${p.projectCode}-${pIndex}`}
-                          className="project-tag"
-                        >
-                          {p.projectCode}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
+            <tbody>
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((user: User, index: number) => (
+                  <tr key={user.employeeNumber || index}>
+                    <td>{user.employeeNumber}</td>
+                    <td className="font-bold">{user.username}</td>
+                    <td>
+                      <div className="flex flex-wrap gap-1">
+                        {user.projects.map((p, pIndex) => (
+                          <span
+                            key={`${p.projectCode}-${pIndex}`}
+                            className="text-xs border border-black px-1 bg-gray-50"
+                          >
+                            {p.projectCode}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
 
-                  <td>
-                    <div className="monthly-stats">
-                      <span
-                        title="Full Days"
-                        className="stat-badge full-days"
-                      >
-                        {user.monthlyStatistics.fullDays}F
-                      </span>
-                      <span
-                        title="Half Days"
-                        className="stat-badge half-days"
-                      >
-                        {user.monthlyStatistics.halfDays}H
-                      </span>
-                      <span
-                        title="Adjusted Total"
-                        className="stat-badge total-days"
-                      >
-                        {user.monthlyStatistics.totalDays}T
-                      </span>
-                      {user.monthlyStatistics.addedDays > 0 && (
-                        <span
-                          title="Added Days"
-                          className="stat-badge added-days"
-                        >
-                          {user.monthlyStatistics.addedDays}A
+                    <td>
+                      <div className="flex gap-1 justify-center">
+                        <span title="Full Days" className="badge badge-green">
+                          {user.monthlyStatistics.fullDays}F
                         </span>
-                      )}
-                      {user.monthlyStatistics.removedDays > 0 && (
-                        <span
-                          title="Removed Days"
-                          className="stat-badge removed-days"
-                        >
-                          {user.monthlyStatistics.removedDays}R
+                        <span title="Half Days" className="badge badge-yellow">
+                          {user.monthlyStatistics.halfDays}H
                         </span>
-                      )}
-                    </div>
-                  </td>
+                        <span title="Adjusted Total" className="badge bg-white">
+                          {user.monthlyStatistics.totalDays}T
+                        </span>
+                      </div>
+                    </td>
 
-                  <td>
-                    <div className="field-trip-status">
+                    <td>
                       <button
-                        className="manage-trips-btn"
+                        className="neo-btn text-xs py-1 px-2"
                         onClick={() => setFieldTripModalUser(user)}
                       >
                         Manage
                       </button>
-                    </div>
-                  </td>
+                    </td>
 
-                  <td>
-                    <div className="action-buttons">
-                      <button
-                        className="calendar-btn ml-2"
-                        onClick={() => setCalendarModalUser(user)}
-                      >
-                        📅
-                      </button>
-                      <button
-                        className="view-btn"
-                        onClick={() => onViewDetails(user)}
-                      >
-                        View
-                      </button>
-                      <button
-                        className="modify-btn"
-                        onClick={() => openModifyModal(user)}
-                      >
-                        Modify
-                      </button>
-                    </div>
+                    <td>
+                      <div className="flex gap-2 justify-center">
+                        <button
+                          className="neo-btn text-xs py-1 px-2"
+                          onClick={() => setCalendarModalUser(user)}
+                          title="View Calendar"
+                        >
+                          📅
+                        </button>
+                        <button
+                          className="neo-btn neo-btn-primary text-xs py-1 px-2"
+                          onClick={() => onViewDetails(user)}
+                        >
+                          View
+                        </button>
+                        <button
+                          className="neo-btn text-xs py-1 px-2"
+                          onClick={() => openModifyModal(user)}
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="text-center p-8 italic text-gray-500">
+                    No employees found matching your search.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={6} className="no-records-message">
-                  No employees found matching your search.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {calendarModalUser && data && (
@@ -456,21 +390,11 @@ export default function AttendanceTable({
         <FieldTripModal
           user={fieldTripModalUser}
           onClose={() => setFieldTripModalUser(null)}
-          onSave={async (
-            employeeNumber: string,
-            fieldTrips: FieldTrip[],
-          ) => {
+          onSave={async (employeeNumber, fieldTrips) => {
+            // Logic kept as is
             try {
-              console.log(
-                "Saving field trips for:",
-                employeeNumber,
-                fieldTrips,
-              );
-              // NOTE: You might want to call loadData() here as well if saving a field trip should refresh the main table data.
-            } catch (error) {
-              console.error("Error saving field trips:", error);
-              alert("Failed to save field trips.");
-            }
+              console.log("Saving", employeeNumber, fieldTrips);
+            } catch (e) { console.error(e) }
           }}
         />
       )}
@@ -481,7 +405,6 @@ export default function AttendanceTable({
           onClose={() => setModifyModalUser(null)}
           onSave={async (employeeNumber, date, status, comment) => {
             try {
-              // Use the api client instead of manual fetch
               const result = await api.post("/pi/modify-attendance", {
                 employeeNumber,
                 date,
@@ -492,7 +415,7 @@ export default function AttendanceTable({
               if (result.success) {
                 alert("Attendance modified successfully");
                 setModifyModalUser(null);
-                loadData(); // Trigger data refresh in the parent component
+                loadData();
               } else {
                 alert(`Error: ${result.error}`);
               }

@@ -16,7 +16,7 @@ export default function Dashboard() {
   const [modalData, setModalData] = useState<User | null>(null);
   const [filters, setFilters] = useState({
     month: new Date().getMonth() + 1,
-    year: new Date().getFullYear(), // Year is set to the current year
+    year: new Date().getFullYear(),
   });
   const [selectedDate, setSelectedDate] = useState<string | undefined>(
     undefined,
@@ -58,24 +58,41 @@ export default function Dashboard() {
   }, [loadData]);
 
   return (
-    <div className="dashboard-content">
-      <div className="dashboard-filters">
-        <select
-          value={filters.month}
-          onChange={(e) =>
-            setFilters((prev) => ({ ...prev, month: parseInt(e.target.value) }))
-          }
-          className="select-brutal"
-        >
-          {Array.from({ length: 12 }, (_, i) => (
-            <option key={i + 1} value={i + 1}>
-              {new Date(0, i).toLocaleDateString("en-US", { month: "long" })}
-            </option>
-          ))}
-        </select>
+    <div className="max-w-7xl mx-auto p-4 md:p-8">
+      <div className="neo-card mb-8 p-6">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <h2 className="text-xl font-bold uppercase">Filter View</h2>
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            {/* 
+                ISSUE FIX: Removed maxWidth constraint and added min-width/flex-grow 
+                to ensure long month names like "September" fit properly.
+            */}
+            <div className="flex-grow md:flex-grow-0 min-w-[220px]">
+              <select
+                value={filters.month}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    month: parseInt(e.target.value),
+                  }))
+                }
+                className="neo-input cursor-pointer"
+              >
+                {Array.from({ length: 12 }, (_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {new Date(0, i).toLocaleDateString("en-US", {
+                      month: "long",
+                    })}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        {/* The year is now displayed as static text instead of a dropdown */}
-        <div className="select-brutal static-year">{filters.year}</div>
+            <div className="neo-input flex items-center justify-center font-bold bg-gray-100 w-24 border-2 border-black">
+              {filters.year}
+            </div>
+          </div>
+        </div>
       </div>
 
       <Calendar
@@ -92,7 +109,7 @@ export default function Dashboard() {
         onViewDetails={(user) => setModalData(user)}
         selectedDate={selectedDate}
         dateAttendances={dateAttendances}
-        loadData={loadData}  // This was missing
+        loadData={loadData}
       />
 
       {modalData && (

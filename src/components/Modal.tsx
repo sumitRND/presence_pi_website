@@ -13,7 +13,6 @@ export default function Modal({
   user,
   onClose,
 }: ModalProps): React.JSX.Element {
-  // --- State for filters ---
   const [searchDate, setSearchDate] = useState<string>("");
   const [modeFilter, setModeFilter] = useState<string>("ALL");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
@@ -40,7 +39,6 @@ export default function Modal({
   useEffect(() => {
     let filtered = user.attendances;
 
-    // Filter by date
     if (searchDate) {
       filtered = filtered.filter((att) => {
         const attDate = new Date(att.date).toISOString().split("T")[0];
@@ -48,7 +46,6 @@ export default function Modal({
       });
     }
 
-    // Robust filtering for Mode
     if (modeFilter !== "ALL") {
       filtered = filtered.filter((att) => {
         const isFieldTrip =
@@ -56,17 +53,12 @@ export default function Modal({
           (att.takenLocation &&
             att.takenLocation.toLowerCase().includes("field trip"));
 
-        if (modeFilter === "FIELDTRIP") {
-          return isFieldTrip;
-        }
-        if (modeFilter === "CAMPUS") {
-          return !isFieldTrip;
-        }
+        if (modeFilter === "FIELDTRIP") return isFieldTrip;
+        if (modeFilter === "CAMPUS") return !isFieldTrip;
         return false;
       });
     }
 
-    // Filter by type
     if (typeFilter !== "ALL") {
       filtered = filtered.filter((att) => {
         if (typeFilter === "FULL_DAY") return att.isFullDay;
@@ -85,24 +77,11 @@ export default function Modal({
     }
   };
 
-  const getSessionColor = (sessionType?: string) => {
-    if (sessionType === "FN") return "#17a2b8";
-    if (sessionType === "AF") return "#ffc107";
-    return "#6c757d";
-  };
-
   const getAttendanceTypeLabel = (att: Attendance) => {
     if (!att.isCheckedOut) return "In Progress";
     if (att.isFullDay) return "Full Day";
     if (att.isHalfDay) return "Half Day";
     return "N/A";
-  };
-
-  const getAttendanceTypeColor = (att: Attendance) => {
-    if (!att.isCheckedOut) return "#ffc107";
-    if (att.isFullDay) return "#28a745";
-    if (att.isHalfDay) return "#17a2b8";
-    return "#6c757d";
   };
 
   const clearFilters = () => {
@@ -115,90 +94,66 @@ export default function Modal({
     searchDate !== "" || modeFilter !== "ALL" || typeFilter !== "ALL";
 
   return (
-    <div className="modal-backdrop" onClick={handleBackdropClick}>
-      <div className="modal-container">
-        <div className="modal-header">
-          <h2 className="modal-title">{user.username} - Attendance Details</h2>
-          <button className="close-btn" onClick={onClose}>
+    <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4" onClick={handleBackdropClick}>
+      <div className="modal-container neo-card p-0 flex flex-col max-h-[90vh] overflow-hidden">
+
+        {/* Header */}
+        <div className="modal-header bg-white p-4 border-b-2 border-black flex justify-between items-center shrink-0">
+          <div>
+            <h2 className="text-xl font-extrabold uppercase">{user.username}</h2>
+            <p className="text-sm font-mono text-gray-500">Attendance Details</p>
+          </div>
+          <button className="neo-btn text-xl leading-none px-3" onClick={onClose}>
             &times;
           </button>
         </div>
-        <div className="modal-body p-6 flex flex-col gap-6">
-          <div className="modal-info leading-relaxed text-base text-gray-600 bg-gray-50 p-4 rounded-md">
-            <strong>Employee Number:</strong> {user.employeeNumber}
-            <br />
-            <strong>Employee Class:</strong> {user.empClass}
-            <br />
-            <strong>Projects:</strong>{" "}
-            {user.projects.map((p) => p.projectCode).join(", ")}
-            <br />
+
+        <div className="modal-body p-6 overflow-y-auto">
+          {/* User Info Block */}
+          <div className="bg-gray-50 border-2 border-black p-4 mb-6 font-mono text-sm">
+            <div className="grid grid-cols-2 gap-2">
+              <p><strong>ID:</strong> {user.employeeNumber}</p>
+              <p><strong>Class:</strong> {user.empClass}</p>
+              <p className="col-span-2"><strong>Projects:</strong> {user.projects.map((p) => p.projectCode).join(", ")}</p>
+            </div>
           </div>
 
+          {/* Monthly Stats */}
           {user.monthlyStatistics && (
-            <div className="stats-summary card bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-              <h3 className="mt-0 text-xl text-gray-800 border-b-2 border-blue-500 inline-block pb-1">
-                Monthly Summary
-              </h3>
-              <div className="stats-row flex justify-around text-center mt-4">
-                <div className="stat-item flex flex-col items-center text-lg">
-                  <strong className="text-gray-700">Total Days:</strong>{" "}
-                  <span className="font-semibold text-blue-600 mt-1">
-                    {user.monthlyStatistics.totalDays.toFixed(1)}
-                  </span>
+            <div className="mb-8">
+              <h3 className="text-lg font-bold uppercase mb-2">Monthly Stats</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="border-2 border-black p-3 text-center">
+                  <div className="text-xs uppercase font-bold text-gray-500">Total</div>
+                  <div className="text-2xl font-bold">{user.monthlyStatistics.totalDays.toFixed(1)}</div>
                 </div>
-                <div className="stat-item flex flex-col items-center text-lg">
-                  <strong className="text-gray-700">Full Days:</strong>{" "}
-                  <span className="font-semibold text-blue-600 mt-1">
-                    {user.monthlyStatistics.fullDays}
-                  </span>
+                <div className="border-2 border-black p-3 text-center bg-green-50">
+                  <div className="text-xs uppercase font-bold text-gray-500">Full</div>
+                  <div className="text-2xl font-bold">{user.monthlyStatistics.fullDays}</div>
                 </div>
-                <div className="stat-item flex flex-col items-center text-lg">
-                  <strong className="text-gray-700">Half Days:</strong>{" "}
-                  <span className="font-semibold text-blue-600 mt-1">
-                    {user.monthlyStatistics.halfDays}
-                  </span>
+                <div className="border-2 border-black p-3 text-center bg-yellow-50">
+                  <div className="text-xs uppercase font-bold text-gray-500">Half</div>
+                  <div className="text-2xl font-bold">{user.monthlyStatistics.halfDays}</div>
                 </div>
               </div>
             </div>
           )}
 
-          <h3 className="section-title mt-0 text-xl text-gray-800 border-b-2 border-blue-500 inline-block pb-1">
-            Attendance Records
-          </h3>
-
-          {/* --- Filters Section --- */}
-          <div className="search-container flex items-end gap-6 flex-wrap">
-            <div className="form-group">
-              <label htmlFor="dateSearch">Filter by Date:</label>
+          {/* Filters */}
+          <div className="p-4 bg-gray-100 border-2 border-black mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
               <input
-                id="dateSearch"
                 type="date"
                 value={searchDate}
                 onChange={(e) => setSearchDate(e.target.value)}
-                className="date-search-input p-3 border border-gray-300 rounded-md text-base w-full"
+                className="neo-input"
               />
-            </div>
-            <div className="form-group flex-grow">
-              <label htmlFor="modeFilter">Filter by Mode:</label>
-              <select
-                id="modeFilter"
-                value={modeFilter}
-                onChange={(e) => setModeFilter(e.target.value)}
-                className="date-search-input p-3 border border-gray-300 rounded-md text-base w-full"
-              >
+              <select value={modeFilter} onChange={(e) => setModeFilter(e.target.value)} className="neo-input">
                 <option value="ALL">All Modes</option>
                 <option value="CAMPUS">Campus</option>
                 <option value="FIELDTRIP">Field Trip</option>
               </select>
-            </div>
-            <div className="form-group flex-grow">
-              <label htmlFor="typeFilter">Filter by Type:</label>
-              <select
-                id="typeFilter"
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="date-search-input p-3 border border-gray-300 rounded-md text-base w-full"
-              >
+              <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="neo-input">
                 <option value="ALL">All Types</option>
                 <option value="FULL_DAY">Full Day</option>
                 <option value="HALF_DAY">Half Day</option>
@@ -206,177 +161,80 @@ export default function Modal({
               </select>
             </div>
             {areFiltersActive && (
-              <button
-                className="clear-search-btn p-3 bg-gray-500 text-white border-none rounded-md cursor-pointer text-base transition-colors duration-200 hover:bg-gray-600"
-                onClick={clearFilters}
-              >
-                Clear
-              </button>
+              <button onClick={clearFilters} className="text-xs underline font-bold mt-2">Clear Filters</button>
             )}
           </div>
 
+          {/* List */}
           {filteredAttendances.length === 0 ? (
-            <p className="no-records-message text-center text-gray-500 italic p-8">
-              No attendance records found matching the current filters.
-            </p>
+            <div className="p-8 text-center italic border-2 border-dashed border-gray-300">
+              No records found.
+            </div>
           ) : (
-            <div className="attendance-list flex flex-col gap-6">
-              {filteredAttendances.map((att, index: number) => {
+            <div className="space-y-4">
+              {filteredAttendances.map((att, index) => {
                 const checkInDate = new Date(att.checkinTime);
-                const checkOutDate = att.checkoutTime
-                  ? new Date(att.checkoutTime)
-                  : null;
+                const checkOutDate = att.checkoutTime ? new Date(att.checkoutTime) : null;
+                const isFieldTrip = att.locationType === "FIELDTRIP" || (att.takenLocation && att.takenLocation.toLowerCase().includes("field trip"));
 
-                // --- MODIFIED: Robust display logic for Mode ---
-                const isFieldTrip =
-                  att.locationType === "FIELDTRIP" ||
-                  (att.takenLocation &&
-                    att.takenLocation.toLowerCase().includes("field trip"));
-
-                const getTripDescription = (att: Attendance) => {
-                  if (!isFieldTrip) return null;
-
+                // Trip Description Logic (Simulated from existing component)
+                let tripDescription = null;
+                if (isFieldTrip) {
                   const attDate = new Date(att.date);
                   attDate.setHours(0, 0, 0, 0);
-
-                  const trip = fieldTrips.find((trip) => {
-                    const startDate = new Date(trip.startDate);
-                    const endDate = new Date(trip.endDate);
-                    startDate.setHours(0, 0, 0, 0);
-                    endDate.setHours(0, 0, 0, 0);
-                    return attDate >= startDate && attDate <= endDate;
+                  const trip = fieldTrips.find(t => {
+                    const s = new Date(t.startDate); s.setHours(0, 0, 0, 0);
+                    const e = new Date(t.endDate); e.setHours(0, 0, 0, 0);
+                    return attDate >= s && attDate <= e;
                   });
-
-                  return trip?.description;
-                };
-
-                const tripDescription = getTripDescription(att);
+                  tripDescription = trip?.description;
+                }
 
                 return (
-                  <div
-                    key={index}
-                    className="attendance-item card bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col gap-4"
-                  >
-                    <div className="attendance-date text-xl font-semibold text-gray-800 border-b border-dashed border-gray-300 pb-2 mb-2">
-                      {checkInDate.toLocaleDateString("en-US", {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
+                  <div key={index} className="border-2 border-black p-4 shadow-[2px_2px_0px_rgba(0,0,0,0.15)] bg-white">
+                    <div className="flex justify-between items-center border-b border-black pb-2 mb-3">
+                      <span className="font-bold">
+                        {checkInDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                      </span>
+                      <div className="flex gap-2">
+                        <span className={`badge ${isFieldTrip ? 'badge-green' : 'bg-gray-200'}`}>
+                          {isFieldTrip ? "Field Trip" : "Campus"}
+                        </span>
+                        <span className={`badge ${att.isCheckedOut ? 'bg-black text-white' : 'badge-yellow'}`}>
+                          {getAttendanceTypeLabel(att)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="attendance-details flex flex-col gap-3">
-                      <div className="detail-row flex justify-between flex-wrap gap-4">
-                        <div className="detail-item flex-1 min-w-[200px]">
-                          <strong>Session:</strong>
-                          <span
-                            className="status-badge"
-                            style={{
-                              backgroundColor: getSessionColor(att.sessionType),
-                              color: "white",
-                            }}
-                          >
-                            {att.sessionType || "N/A"}
-                          </span>
-                        </div>
-                        <div className="detail-item flex-1 min-w-[200px]">
-                          <strong>Type:</strong>
-                          <span
-                            className="status-badge"
-                            style={{
-                              backgroundColor: getAttendanceTypeColor(att),
-                              color: "white",
-                            }}
-                          >
-                            {getAttendanceTypeLabel(att)}
-                          </span>
-                        </div>
+
+                    <div className="grid grid-cols-2 gap-4 text-sm mb-3">
+                      <div>
+                        <span className="font-bold block text-xs uppercase text-gray-500">Check In</span>
+                        {checkInDate.toLocaleTimeString()}
                       </div>
-                      <div className="detail-row flex justify-between flex-wrap gap-4">
-                        <div className="detail-item flex-1 min-w-[200px]">
-                          <strong>Check-in:</strong>{" "}
-                          <span>{checkInDate.toLocaleTimeString()}</span>
-                        </div>
-                        {checkOutDate && (
-                          <div className="detail-item flex-1 min-w-[200px]">
-                            <strong>Check-out:</strong>{" "}
-                            <span>{checkOutDate.toLocaleTimeString()}</span>
-                          </div>
-                        )}
+                      <div>
+                        <span className="font-bold block text-xs uppercase text-gray-500">Check Out</span>
+                        {checkOutDate ? checkOutDate.toLocaleTimeString() : "--"}
                       </div>
-                      <div className="detail-row flex justify-between flex-wrap gap-4">
-                        <div className="detail-item flex-1 min-w-[200px]">
-                          <strong>Mode:</strong>
-                          <span
-                            className={`status-badge ${
-                              isFieldTrip
-                                ? "bg-green-100 text-green-800"
-                                : "bg-blue-100 text-blue-800"
-                            }`}
-                          >
-                            {isFieldTrip ? "Field Trip" : "Campus"}
-                          </span>
-                        </div>
-                        <div className="detail-item flex-1 min-w-[200px]">
-                          <strong>Status:</strong>
-                          <span
-                            className={`status-badge ${
-                              att.isCheckedOut
-                                ? "bg-green-500 text-white"
-                                : "bg-yellow-400 text-gray-800"
-                            }`}
-                          >
-                            {att.isCheckedOut ? "Completed" : "In Progress"}
-                          </span>
-                        </div>
+                      <div className="col-span-2">
+                        <span className="font-bold block text-xs uppercase text-gray-500">Location</span>
+                        <span className="font-mono text-xs">{att.location?.address || att.takenLocation || "N/A"}</span>
                       </div>
-                      <div className="detail-row flex justify-between flex-wrap gap-4">
-                        <div className="detail-item flex-1 min-w-[200px]">
-                          <strong>Location:</strong>{" "}
-                          <span>
-                            {att.location?.address || "Not specified"}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="detail-row flex justify-between flex-wrap gap-4">
-                        <div className="detail-item flex-1 min-w-[200px]">
-                          <strong>Taken Department Location:</strong>{" "}
-                          <span>{att.takenLocation || "Not specified"}</span>
-                        </div>
-                      </div>
-                      {isFieldTrip && tripDescription && (
-                        <div className="detail-row flex justify-between flex-wrap gap-4">
-                          <div className="detail-item flex-1 min-w-[200px]">
-                            <strong>Field Trip Description:</strong>{" "}
-                            <span>{tripDescription}</span>
-                          </div>
+                      {tripDescription && (
+                        <div className="col-span-2 bg-yellow-50 p-2 border border-yellow-200 text-xs italic">
+                          &quot;{tripDescription}&quot;
                         </div>
                       )}
                     </div>
 
-                    <div className="media-links flex flex-wrap gap-2.5 mt-4">
+                    <div className="flex gap-2 mt-2">
                       {att.photo && (
-                        <a
-                          href={att.photo.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="media-link py-2 px-3 rounded-md no-underline text-white font-medium transition-colors duration-200 text-sm bg-blue-500 hover:bg-blue-600"
-                        >
-                          📷 View Photo
+                        <a href={att.photo.url} target="_blank" rel="noreferrer" className="neo-btn text-xs py-1 px-2">
+                          📷 Photo
                         </a>
                       )}
                       {att.audio && (
-                        <a
-                          href={att.audio.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="media-link py-2 px-3 rounded-md no-underline text-white font-medium transition-colors duration-200 text-sm bg-gray-500 hover:bg-gray-600"
-                        >
-                          🎵 Audio (
-                          {att.audio.duration
-                            ? att.audio.duration + "s"
-                            : "unknown"}
-                          )
+                        <a href={att.audio.url} target="_blank" rel="noreferrer" className="neo-btn text-xs py-1 px-2">
+                          🎵 Audio
                         </a>
                       )}
                     </div>

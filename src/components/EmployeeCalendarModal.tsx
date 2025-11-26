@@ -33,7 +33,7 @@ export default function EmployeeCalendarModal({
       setLoading(true);
       const holidaysRes = await api.get(`/calendar/holidays?year=${year}`);
       const currentYearHolidays: Holiday[] = holidaysRes.success
-        ? (holidaysRes as any).holidays
+        ? (holidaysRes as { holidays: Holiday[] }).holidays
         : [];
 
       const daysInMonth = new Date(year, month, 0).getDate();
@@ -90,11 +90,14 @@ export default function EmployeeCalendarModal({
   }, [loadCalendarData]);
 
   const getDayClass = (day: CalendarDay) => {
-    let classes = "calendar-day";
-    if (day.isHoliday) classes += " holiday";
-    if (day.isWeekend) classes += " weekend";
-    if (day.status === "present") classes += " present";
-    if (day.status === "absent") classes += " absent";
+    let classes = "h-20 border-r-2 border-b-2 border-black p-2 flex flex-col justify-between transition-colors";
+
+    if (day.status === "present") classes += " bg-green-200";
+    else if (day.status === "absent") classes += " bg-red-200";
+    else if (day.isHoliday) classes += " bg-red-50";
+    else if (day.isWeekend) classes += " bg-gray-100";
+    else classes += " bg-white";
+
     return classes;
   };
 
@@ -104,67 +107,87 @@ export default function EmployeeCalendarModal({
     }
   };
 
-  if (loading) {
-    return (
-      <div className="modal-backdrop" onClick={handleBackdropClick}>
-        <div className="modal-container">
-          <div className="modal-header">
-            <h2>{user.username} - Current Month Calendar</h2>
-            <button className="close-btn" onClick={onClose}>
-              ×
-            </button>
-          </div>
-          <div className="p-6">
-            <div className="loading">Loading calendar...</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const firstDayOfMonth = new Date(year, month - 1, 1).getDay();
 
   return (
-    <div className="modal-backdrop" onClick={handleBackdropClick}>
-      <div className="modal-container">
-        <div className="modal-header">
-          <h2>{user.username} - Monthly Calendar</h2>
-          <button className="close-btn" onClick={onClose}>
-            ×
+    <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={handleBackdropClick}>
+      <div className="modal-container neo-card w-full max-w-7xl flex flex-col max-h-[90vh]">
+
+        {/* Header */}
+        <div className="modal-header bg-white p-4 border-b-2 border-black flex justify-between items-center shrink-0">
+          <div>
+            <h2 className="text-xl font-extrabold uppercase">{user.username}</h2>
+            <p className="text-sm font-mono text-gray-500">
+              {new Date(year, month - 1).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+            </p>
+          </div>
+          <button className="neo-btn px-3 py-1 text-xl leading-none" onClick={onClose}>
+            &times;
           </button>
         </div>
-        <div className="p-6">
-          <div className="calendar-grid">
-            <div className="calendar-weekdays">
-              <div>Sun</div>
-              <div>Mon</div>
-              <div>Tue</div>
-              <div>Wed</div>
-              <div>Thu</div>
-              <div>Fri</div>
-              <div>Sat</div>
+
+        {/* Body */}
+        <div className="p-6 overflow-y-auto bg-white">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center h-64">
+              <div className="animate-spin h-8 w-8 border-4 border-black border-t-transparent rounded-full mb-4"></div>
+              <p className="font-bold">Loading Calendar...</p>
             </div>
-            <div className="calendar-days">
-              {Array.from({ length: firstDayOfMonth }, (_, i) => (
-                <div key={`empty-${i}`} className="calendar-day empty" />
-              ))}
-              {calendarData.map((day) => {
-                const dateObj = new Date(day.date);
-                const dayOfMonth = dateObj.getUTCDate();
-                return (
-                  <div key={day.date} className={getDayClass(day)}>
-                    <div className="day-number">{dayOfMonth}</div>
-                    {day.description && (
-                      <div className="day-holiday">{day.description}</div>
-                    )}
-                    <div className="day-status">
-                      {day.status === "present" && "Present"}
-                      {day.status === "absent" && "Absent"}
-                    </div>
+          ) : (
+            <div className="border-2 border-black">
+              {/* Weekday Headers */}
+              <div className="grid grid-cols-7 bg-gray-200 border-b-2 border-black">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+                  <div key={d} className="p-2 text-center font-bold uppercase text-xs border-r-2 border-black last:border-r-0">
+                    {d}
                   </div>
-                );
-              })}
+                ))}
+              </div>
+
+              {/* Days Grid */}
+              <div className="grid grid-cols-7 bg-black gap-[2px] border-black">
+                {/* Gap trick for borders if needed, but here we use explicit borders on cells */}
+
+                {Array.from({ length: firstDayOfMonth }, (_, i) => (
+                  <div key={`empty-start-${i}`} className="bg-gray-50 border-r-2 border-b-2 border-black h-20 opacity-50" />
+                ))}
+
+                {calendarData.map((day) => {
+                  const dateObj = new Date(day.date);
+                  const dayOfMonth = dateObj.getUTCDate();
+                  return (
+                    <div key={day.date} className={getDayClass(day)}>
+                      <div className="flex justify-between items-start">
+                        <span className="font-bold text-sm">{dayOfMonth}</span>
+                        {day.description && (
+                          <span className="text-[10px] text-red-600 font-extrabold uppercase text-right leading-tight max-w-[60px]">
+                            {day.description}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="text-xs font-bold uppercase text-center mt-1">
+                        {day.status === "present" && <span className="text-green-900">Present</span>}
+                        {day.status === "absent" && <span className="text-red-900">Absent</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Fill remaining cells to complete the grid row */}
+                {Array.from({ length: (7 - ((firstDayOfMonth + calendarData.length) % 7)) % 7 }, (_, i) => (
+                  <div key={`empty-end-${i}`} className="bg-gray-50 border-r-2 border-b-2 border-black h-20 opacity-50" />
+                ))}
+              </div>
             </div>
+          )}
+
+          {/* Legend */}
+          <div className="flex gap-4 mt-4 text-xs font-bold uppercase justify-center flex-wrap">
+            <div className="flex items-center gap-1"><div className="w-3 h-3 bg-green-200 border border-black"></div> Present</div>
+            <div className="flex items-center gap-1"><div className="w-3 h-3 bg-red-200 border border-black"></div> Absent</div>
+            <div className="flex items-center gap-1"><div className="w-3 h-3 bg-red-50 border border-black"></div> Holiday</div>
+            <div className="flex items-center gap-1"><div className="w-3 h-3 bg-gray-100 border border-black"></div> Weekend</div>
           </div>
         </div>
       </div>

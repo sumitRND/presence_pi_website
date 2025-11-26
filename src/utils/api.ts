@@ -1,6 +1,9 @@
 // src/utils/api.ts
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
+
+import type { Holiday } from "../types";
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -13,6 +16,8 @@ interface ApiResponse<T = any> {
   totalUsers?: number;
   submittedCount?: number;
   totalCount?: number;
+  holidays?: Holiday[];
+  totalHolidays?: number;
 }
 
 export class ApiClient {

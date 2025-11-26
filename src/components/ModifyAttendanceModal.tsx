@@ -52,175 +52,104 @@ export default function ModifyAttendanceModal({
   };
 
   return (
-    <>
-      <style>{`
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: rgba(0, 0, 0, 0.5);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 1000;
-        }
-        .modal-content {
-          background: white;
-          padding: 20px;
-          border-radius: 8px;
-          width: 500px;
-          max-width: 90%;
-        }
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          border-bottom: 1px solid #eee;
-          padding-bottom: 10px;
-          margin-bottom: 20px;
-        }
-        .close-button {
-          background: none;
-          border: none;
-          font-size: 1.5rem;
-          cursor: pointer;
-        }
-        .form-group {
-          margin-bottom: 15px;
-        }
-        .form-group label {
-          display: block;
-          margin-bottom: 5px;
-        }
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-          width: 100%;
-          padding: 8px;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-        }
-        .modal-footer {
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-          margin-top: 20px;
-        }
-        .cancel-btn,
-        .save-btn {
-          padding: 8px 16px;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-        .cancel-btn {
-          background-color: #eee;
-        }
-        .save-btn {
-          background-color: #007bff;
-          color: white;
-        }
-        .modified-attendance-list {
-          margin-top: 20px;
-        }
-        .modified-attendance-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 10px;
-          border: 1px solid #eee;
-          border-radius: 4px;
-          margin-bottom: 10px;
-        }
-        .delete-btn {
-          background-color: #dc3545;
-          color: white;
-          border: none;
-          padding: 5px 10px;
-          border-radius: 4px;
-          cursor: pointer;
-        }
-      `}</style>
-      <div className="modal-overlay" onClick={onClose}>
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <h2>Modify Attendance for {user.username}</h2>
-            <button onClick={onClose} className="close-button">
-              &times;
-            </button>
-          </div>
-          <form onSubmit={handleSubmit}>
-            <div className="modal-body">
-              <div className="form-group">
-                <label htmlFor="date">Date</label>
-                <input
-                  type="date"
-                  id="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="status">Status</label>
-                <select
-                  id="status"
-                  value={status}
-                  onChange={(e) =>
-                    setStatus(e.target.value as "ADDED" | "REMOVED")
-                  }
-                >
-                  <option value="ADDED">Add Attendance</option>
-                  <option value="REMOVED">Remove Attendance</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label htmlFor="comment">Comment</label>
-                <textarea
-                  id="comment"
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  required
-                ></textarea>
-              </div>
+    <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={(e) => {
+      if ((e.target as HTMLElement).classList.contains("modal-backdrop")) onClose();
+    }}>
+      <div className="modal-container neo-card p-0 flex flex-col max-h-[90vh] w-[550px]">
+        {/* Header */}
+        <div className="modal-header bg-white p-4 border-b-2 border-black flex justify-between items-center">
+          <h2 className="text-xl font-extrabold uppercase">Modify Attendance</h2>
+          <button onClick={onClose} className="neo-btn px-2 py-1 leading-none text-xl">
+            &times;
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto">
+          <p className="mb-4 font-mono text-sm bg-gray-100 p-2 border border-black">
+            Employee: <strong>{user.username}</strong> ({user.employeeNumber})
+          </p>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="form-group">
+              <label htmlFor="date" className="block text-sm font-bold uppercase mb-1">Date</label>
+              <input
+                className="neo-input"
+                type="date"
+                id="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+              />
             </div>
-            <div className="modal-footer">
-              <button type="button" onClick={onClose} className="cancel-btn">
+            <div className="form-group">
+              <label htmlFor="status" className="block text-sm font-bold uppercase mb-1">Action</label>
+              <select
+                className="neo-input"
+                id="status"
+                value={status}
+                onChange={(e) =>
+                  setStatus(e.target.value as "ADDED" | "REMOVED")
+                }
+              >
+                <option value="ADDED">Add Attendance (Mark Present)</option>
+                <option value="REMOVED">Remove Attendance (Mark Absent)</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label htmlFor="comment" className="block text-sm font-bold uppercase mb-1">Reason / Comment</label>
+              <textarea
+                className="neo-input"
+                id="comment"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={3}
+                required
+                placeholder="Required for audit trail..."
+              ></textarea>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-2">
+              <button type="button" onClick={onClose} className="neo-btn bg-gray-200">
                 Cancel
               </button>
-              <button type="submit" className="save-btn">
-                Save
+              <button type="submit" className="neo-btn neo-btn-primary">
+                Save Change
               </button>
             </div>
           </form>
-          <div className="modified-attendance-list">
-            <h3>Previously Modified Attendance</h3>
-            {modifiedAttendances.map((att) => (
-              <div key={att.id} className="modified-attendance-item">
-                <div>
-                  <p>
-                    <strong>Date:</strong> {new Date(att.date).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <strong>Status:</strong> {att.status}
-                  </p>
-                  <p>
-                    <strong>Comment:</strong> {att.comment}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleDelete(att.id)}
-                  className="delete-btn"
-                >
-                  Delete
-                </button>
+
+          {modifiedAttendances.length > 0 && (
+            <div className="mt-8 pt-6 border-t-2 border-black">
+              <h3 className="text-lg font-bold uppercase mb-4">Modification History</h3>
+              <div className="flex flex-col gap-3">
+                {modifiedAttendances.map((att) => (
+                  <div key={att.id} className="border-2 border-black p-3 bg-yellow-50 shadow-[2px_2px_0px_rgba(0,0,0,0.1)]">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <div className="font-bold text-sm">
+                          {new Date(att.date).toLocaleDateString()}
+                        </div>
+                        <span className={`text-xs font-bold px-1 border border-black ${att.status === 'ADDED' ? 'bg-green-300' : 'bg-red-300'}`}>
+                          {att.status}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleDelete(att.id)}
+                        className="neo-btn neo-btn-danger text-xs py-1 px-2"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                    <p className="text-xs font-mono text-gray-700 bg-white p-2 border border-gray-300">
+                      &quot;{att.comment}&quot;
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

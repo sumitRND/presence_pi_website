@@ -13,11 +13,6 @@ interface Notification {
 
 import { User } from "../types";
 
-interface Employee {
-  employeeNumber: string;
-  username: string;
-}
-
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -170,44 +165,53 @@ export default function NotificationBell() {
 
   return (
     <>
-      <div className="relative cursor-pointer">
-        <span
-          className="text-2xl text-black"
+      <div className="relative cursor-pointer group">
+        <div
+          className="relative neo-btn px-2 py-2 border-none shadow-none hover:shadow-none bg-transparent hover:bg-gray-100"
           onClick={() => setIsOpen(!isOpen)}
         >
-          🔔
-        </span>
-        {notifications.length > 0 && (
-          <span className="notification-badge">{notifications.length}</span>
-        )}
+          <span className="text-2xl">🔔</span>
+          {notifications.length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-black text-white text-xs font-bold h-5 w-5 flex items-center justify-center border-2 border-white rounded-full">
+              {notifications.length}
+            </span>
+          )}
+        </div>
 
         {isOpen && (
-          <div className="notification-dropdown">
-            <div className="notification-header">HR Attendance Requests</div>
+          <div className="absolute right-0 mt-2 w-80 z-50 neo-card overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="bg-white border-b-2 border-black p-3 font-bold uppercase text-sm">
+              HR Attendance Requests
+            </div>
+
             {notifications.length > 0 ? (
-              notifications.map((notif, index) => (
-                <div key={index} className="notification-item">
-                  <p className="mb-3 text-black">
-                    {formatNotificationMessage(notif)}
-                  </p>
-                  <div className="flex flex-col gap-2">
-                    <button
-                      className="btn btn-brutal w-full"
-                      onClick={() => handleSendAllData(notif.month, notif.year)}
-                    >
-                      Send All Employee Data
-                    </button>
-                    <button
-                      className="btn bg-blue-100 hover:bg-blue-200 w-full"
-                      onClick={() => handleSelectEmployees(notif)}
-                    >
-                      Select Specific Employees
-                    </button>
+              <div className="max-h-[300px] overflow-y-auto">
+                {notifications.map((notif, index) => (
+                  <div key={index} className="p-4 border-b-2 border-black last:border-b-0 hover:bg-gray-50">
+                    <p className="mb-3 text-sm font-medium border-l-4 border-black pl-2">
+                      {formatNotificationMessage(notif)}
+                    </p>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        className="neo-btn neo-btn-primary w-full text-xs py-2"
+                        onClick={() => handleSendAllData(notif.month, notif.year)}
+                      >
+                        Send All Data
+                      </button>
+                      <button
+                        className="neo-btn w-full text-xs py-2 bg-white"
+                        onClick={() => handleSelectEmployees(notif)}
+                      >
+                        Select Employees
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             ) : (
-              <div className="notification-empty">No new requests</div>
+              <div className="p-8 text-center text-gray-500 italic text-sm">
+                No new requests from HR
+              </div>
             )}
           </div>
         )}

@@ -2,13 +2,13 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation"; // Import useRouter
 import { useAuth } from "../../hooks/useAuth";
 import Link from "next/link";
 import { DebugInfo } from "@/types";
 
-export default function SSOPage() {
+function SSOContent() {
     const searchParams = useSearchParams();
     const router = useRouter(); // Initialize the router
     const { setSSOUser } = useAuth();
@@ -121,5 +121,13 @@ export default function SSOPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function SSOPage() {
+    return (
+        <Suspense fallback={<div className="loading-screen">Loading SSO...</div>}>
+            <SSOContent />
+        </Suspense>
     );
 }
